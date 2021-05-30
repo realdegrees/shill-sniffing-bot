@@ -4,8 +4,6 @@ import {
 import environment from './environment';
 import asyncFilter from './helpers/async-filter';
 
-type VOTE_TYPE = 'down' | 'up';
-
 const fetchListing = async (
   listing: Listing<Submission | Comment>,
   timeFrameMs: number = environment.TIME_FRAME_MS,
@@ -28,14 +26,6 @@ const getPosts = async (
   timeFrameMs: number = environment.TIME_FRAME_MS,
 ): Promise<(Submission | Comment
   )[]> => user.getOverview().then((posts) => fetchListing(posts, timeFrameMs));
-
-const getPostsVoted = (
-  user: RedditUser,
-  vote: VOTE_TYPE,
-  timeFrameMs: number = environment.TIME_FRAME_MS,
-): Promise<(Submission | Comment
-  )[]> => (vote === 'down' ? user.getDownvotedContent() : user.getUpvotedContent())
-  .then((posts) => fetchListing(posts, timeFrameMs));
 
 const filterPostsBySub = async (
   posts: (Submission | Comment)[],
@@ -65,8 +55,6 @@ const getActiveSubreddits = async (
 export default async (user: RedditUser): Promise<any> => {
   const accountAgeInDays = ((Date.now() - user.created_utc) / 1000 / 60 / 60 / 24);
   const postsPosted = await getPosts(user);
-  const postsDownvoted = await getPostsVoted(user, 'down');
-  const postsUpvoted = await getPostsVoted(user, 'up');
   const activeSubreddits = await getActiveSubreddits(postsPosted);
 
   const [postsGenericGME, postsGenericFinance, postsMeltdown, postsOther] = await Promise.all([
@@ -74,11 +62,6 @@ export default async (user: RedditUser): Promise<any> => {
     filterPostsBySub(postsPosted, environment.FINANCE_SUBREDDITS),
     filterPostsBySub(postsPosted, ['GME_Meltdown']),
     filterPostsBySub(postsPosted, [...environment.FINANCE_SUBREDDITS, ...environment.GME_SUBREDDITS, 'GME_Meltdown'], true),
-  ]);
-  const [postsVotedGenericFinance, postsVotedMeltdown, postsVotedOther] = await Promise.all([
-    filterPostsBySub([...postsDownvoted, ...postsUpvoted], environment.FINANCE_SUBREDDITS),
-    filterPostsBySub([...postsDownvoted, ...postsUpvoted], ['GME_Meltdown']),
-    filterPostsBySub([...postsDownvoted, ...postsUpvoted], [...environment.FINANCE_SUBREDDITS, ...environment.GME_SUBREDDITS, 'GME_Meltdown'], true),
   ]);
 
   const postsData: Posts = {
@@ -89,13 +72,8 @@ export default async (user: RedditUser): Promise<any> => {
     totalInOther: postsOther.length,
   };
   const votingData: Voting = {
-    votesReceivedInGenericGME: postsGenericGME.map((post) => post.ups - post.downs),
-    upvotedInGenericGME: (await filterPostsBySub(postsUpvoted, environment.GME_SUBREDDITS)).length,
-    downvotedInGenericGME: (await filterPostsBySub(postsDownvoted, environment.GME_SUBREDDITS)).length,
-    totalInGenericFinance: postsVotedGenericFinance.length,
-    totalInMeltdown: postsVotedMeltdown.length,
-    totalInOther: postsVotedOther.length,
-    totalInTimeFrame: [...postsDownvoted, ...postsUpvoted].length,
+    upvotesReceivedInGenericGME: postsGenericGME.map((post) => post.ups),
+    downvotesReceivedInGenericGME: postsGenericGME.map((post) => post.downs),
   };
 
   const reportsReceived = postsGenericGME.reduce((sum, post) => sum + post.num_reports, 0);

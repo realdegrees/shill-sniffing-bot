@@ -8,5 +8,5 @@ interface UserReview {
   }
   posts: Posts,
   voting: Voting,
-  reportsReceived: number,
+  reportsReceivedGME: number,
 }

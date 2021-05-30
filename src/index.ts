@@ -23,7 +23,7 @@ const client = new Snoowrap({
 //   console.log(item.body);
 // });
 
-client.getUser('spez').fetch().then(checkUser);
+client.getUser('degrees97').fetch().then(checkUser);
 
 // reddit.getUser('degrees97').getComments()
 //   .then((comments) => {
