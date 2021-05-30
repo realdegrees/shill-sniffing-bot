@@ -14,7 +14,7 @@ const fetchListing = async (
     && Date.now() / 1000 - (submissions[submissions.length - 1]).created_utc < timeFrameMs / 1000) {
     // eslint-disable-next-line no-await-in-loop
     submissions = await submissions.fetchMore({
-      amount: 50,
+      amount: 25,
       append: true,
     });
   }
