@@ -1,0 +1,27 @@
+{
+  "name": "shill-sniffing-bot",
+  "version": "1.0.0",
+  "description": "A reddit bot that sniffs out SHF shills",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --fix --ext .js,.jsx,.ts,.tsx",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "snoostorm": "^1.5.2",
+    "snoowrap": "^1.23.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "eslint": "^7.27.0",
+    "eslint-config-airbnb-typescript": "^12.3.1",
+    "typescript": "^4.3.2"
+  }
+}
