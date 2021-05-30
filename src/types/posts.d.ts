@@ -4,5 +4,4 @@ interface Posts {
   totalInGenericGME: number;
   totalInMeltdown: number;
   totalInOther: number;
-  votesReceivedAverageInGenericGME: number;
 }

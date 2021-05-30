@@ -1,8 +1,9 @@
 interface Voting {
   totalInTimeFrame: number;
   totalInGenericFinance: number;
-  totalInGenericGME: number;
   totalInMeltdown: number;
   totalInOther: number;
-  votingAverageInGenericGME: number;
+  upvotedInGenericGME: number;
+  downvotedInGenericGME: number;
+  votesReceivedInGenericGME: number[];
 }
