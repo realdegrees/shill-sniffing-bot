@@ -2,10 +2,7 @@ interface UserReview {
   accountAge: number;
   uniqueSubreddits: number;
   floor: Floor;
-  sentiment: {
-    selling: number,
-    buying: number
-  }
+  sentiment: number
   posts: Posts,
   voting: Voting,
   reportsReceivedGME: number,
