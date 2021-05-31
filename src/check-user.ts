@@ -3,6 +3,8 @@ import {
   Comment, Listing, RedditUser, Submission, VoteableContent,
 } from 'snoowrap';
 import environment from './environment';
+import isNotNullOrUndefined from './helpers/is-not-null-or-undefined';
+import median from './helpers/median';
 
 const sentiment = new Sentiment();
 const sentimentOptions = {
@@ -59,7 +61,19 @@ const getActiveSubreddits = (
     return uniqueSubs;
   }, []);
 
-export default async (user: RedditUser): Promise<any> => {
+const getPriceSentiment = (textPosts: string[]): string[] => {
+  const pricePosts = textPosts.filter((text) => (text.match(/ceiling/i)
+    || text.match(/floor/i)
+    || text.match(/sell/i))
+    && text.match(/[0-9.,]+\s?(k|mil|million|m|mm|thousand)\s/i));
+
+  return pricePosts.map((text) => text
+    .match(/[0-9.,]+\s?(k|mil|million|m|mm|thousand)\s/i))
+    .filter(isNotNullOrUndefined)
+    .map((result) => result?.[0].trim());
+};
+
+export default async (user: RedditUser): Promise<UserReview> => {
   const accountAgeInDays = ((Date.now() - user.created_utc) / 1000 / 60 / 60 / 24);
   const commentsPosted = await getComments(user);
   const submissionsPosted = await getSubmissions(user);
@@ -81,12 +95,14 @@ export default async (user: RedditUser): Promise<any> => {
     totalInTimeFrame: postsPosted.length,
     totalInGenericFinance: postsGenericFinance.length,
     totalInGenericGME: postsGenericGME.length,
-    totalInMeltdown: postsMeltdown.length,
+    totalInAntiGME: postsMeltdown.length,
     totalInOther: postsOther.length,
   };
   const votingData: Voting = {
-    upvotesReceivedInGenericGME: postsGenericGME.map((post) => post.ups),
-    downvotesReceivedInGenericGME: postsGenericGME.map((post) => post.downs),
+    avgUpvotesReceivedInGenericGME: postsGenericGME.map((post) => post.ups).reduce((avg, num) => avg + num, 0) / postsGenericGME.length,
+    avgDownvotesReceivedInGenericGME: postsGenericGME.map((post) => post.downs).reduce((avg, num) => avg + num, 0) / postsGenericGME.length,
+    medianUpvotesReceivedInGenericGME: median(postsGenericGME.map((post) => post.ups)),
+    medianDownvotesReceivedInGenericGME: median(postsGenericGME.map((post) => post.downs)),
   };
 
   const reportsReceived = postsGenericGME.reduce((sum, post) => sum + post.num_reports, 0);
@@ -107,15 +123,34 @@ export default async (user: RedditUser): Promise<any> => {
   const averageSentiment = allSentiment.reduce((avg, result) => avg + result.score, 0) / allSentiment.length;
   const averageSentimentGME = allSentimentGME.reduce((avg, result) => avg + result.score, 0) / allSentimentGME.length;
 
-  console.log(accountAgeInDays.toFixed(2));
-  console.log(activeSubreddits);
-  console.log(reportsReceived);
-  console.log(postsData);
-  console.log(votingData);
-  console.log(`Sentiment Score: ${averageSentiment}`);
-  console.log(`Sentiment Score GME Subs: ${averageSentimentGME}`);
-};
+  const textPostsGME = [
+    ...commentsPosted
+      .filter((comment) => environment.SUBREDDITS.GME.includes(comment.subreddit_name_prefixed))
+      .map((comment) => comment.body.toLowerCase()),
+    ...submissionsPosted
+      .filter((submission) => environment.SUBREDDITS.GME.includes(submission.subreddit_name_prefixed) && submission.selftext)
+      .map((submission) => submission.selftext.toLowerCase()),
+  ];
+  const priceSentiment = getPriceSentiment(textPostsGME);
 
-// const getFloor = (submissions: (Comment | Submission)[]): Promise<Floor> => {
-//   return submissions.map((submission) => submission.)
-// };
+  // console.log(accountAgeInDays.toFixed(2));
+  // console.log(activeSubreddits);
+  // console.log(reportsReceived);
+  // console.log(postsData);
+  // console.log(votingData);
+  // console.log(`Sentiment Score: ${averageSentiment}`);
+  // console.log(`Sentiment Score GME Subs: ${averageSentimentGME}`);
+  // console.log(priceSentiment);
+
+  return {
+    username: user.name,
+    accountAge: accountAgeInDays,
+    posts: postsData,
+    priceSentiment,
+    reportsReceivedGME: reportsReceived,
+    sentimentAll: averageSentiment,
+    sentimentGME: averageSentimentGME,
+    uniqueSubreddits: activeSubreddits,
+    voting: votingData,
+  };
+};

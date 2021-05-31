@@ -2,6 +2,6 @@ interface Posts {
   totalInTimeFrame: number;
   totalInGenericFinance: number;
   totalInGenericGME: number;
-  totalInMeltdown: number;
+  totalInAntiGME: number;
   totalInOther: number;
 }

@@ -1,9 +1,11 @@
 interface UserReview {
+  username: string;
   accountAge: number;
-  uniqueSubreddits: number;
-  floor: Floor;
-  sentiment: number
-  posts: Posts,
-  voting: Voting,
-  reportsReceivedGME: number,
+  uniqueSubreddits: string[];
+  priceSentiment: string[];
+  sentimentAll: number;
+  sentimentGME: number;
+  voting: Voting;
+  posts: Posts;
+  reportsReceivedGME: number;
 }
