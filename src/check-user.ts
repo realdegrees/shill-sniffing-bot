@@ -67,10 +67,14 @@ export default async (user: RedditUser): Promise<any> => {
   const activeSubreddits = getActiveSubreddits(postsPosted);
 
   const [postsGenericGME, postsGenericFinance, postsMeltdown, postsOther] = await Promise.all([
-    filterPostsBySub(postsPosted, environment.GME_SUBREDDITS),
-    filterPostsBySub(postsPosted, environment.FINANCE_SUBREDDITS),
-    filterPostsBySub(postsPosted, ['GME_Meltdown']),
-    filterPostsBySub(postsPosted, [...environment.FINANCE_SUBREDDITS, ...environment.GME_SUBREDDITS, 'GME_Meltdown'], true),
+    filterPostsBySub(postsPosted, environment.SUBREDDITS.GME),
+    filterPostsBySub(postsPosted, environment.SUBREDDITS.FINANCE),
+    filterPostsBySub(postsPosted, environment.SUBREDDITS.ANTI_GME),
+    filterPostsBySub(postsPosted, [
+      ...environment.SUBREDDITS.FINANCE,
+      ...environment.SUBREDDITS.GME,
+      ...environment.SUBREDDITS.ANTI_GME,
+    ], true),
   ]);
 
   const postsData: Posts = {
@@ -91,9 +95,9 @@ export default async (user: RedditUser): Promise<any> => {
   const submissionSentiment = submissionsPosted
     .filter((submission) => submission.selftext)
     .map((submission) => sentiment.analyze(submission.selftext, sentimentOptions));
-  const commentSentimentGME = (await filterPostsBySub(commentsPosted, environment.GME_SUBREDDITS))
+  const commentSentimentGME = filterPostsBySub(commentsPosted, environment.SUBREDDITS.GME)
     .map((comment) => sentiment.analyze(comment.body, sentimentOptions));
-  const submissionSentimentGME = (await filterPostsBySub(submissionsPosted, environment.GME_SUBREDDITS))
+  const submissionSentimentGME = filterPostsBySub(submissionsPosted, environment.SUBREDDITS.GME)
     .filter((submission) => submission.selftext)
     .map((submission) => sentiment.analyze(submission.selftext, sentimentOptions));
 
